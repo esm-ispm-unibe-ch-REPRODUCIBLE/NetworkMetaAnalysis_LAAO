@@ -55,7 +55,7 @@ densities_all_bleeding <- Map(get_density, NMA_bleeding_Bayesian,
   mutate(area = ifelse(x >= 0, "Control better", "Active better"),
          outcome = "Bleedings")
 
-# Convergence check
+# Convergence assessment
 param_names <- colnames(NMA_bleeding_Bayesian)
 
 old_names <- colnames(bleeding.mcmc_to_plot[[1]])
@@ -72,10 +72,8 @@ for (i in seq_along(bleeding.mcmc_to_plot)) {
 params_to_plot <- grep("^(RD)", new_names, value = TRUE)
 gelman.diag(bleeding.mcmc_to_plot[, params_to_plot])
 
-n_params <- length(params_to_plot)
-
 # Set Layout
-par(mfrow = c(n_params, 2), mar = c(4, 4, 2, 1))
+par(mfrow = c(length(params_to_plot), 2), mar = c(4, 4, 2, 1))
 
 for(i in params_to_plot) {
   # Trace plot
