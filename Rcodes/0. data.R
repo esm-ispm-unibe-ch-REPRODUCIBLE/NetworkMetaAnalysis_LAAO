@@ -10,7 +10,7 @@ data_raw <- read_xlsx("NMA_data.xlsx")
 
 data_long <- data_raw %>%
   pivot_longer(
-    cols = -Name,   # se hai una colonna name/id, altrimenti rimuovi -name
+    cols = -Name,   
     names_to = ".value",
     names_pattern = "(.+?)_?\\d+$"
   ) %>% 
