@@ -26,8 +26,6 @@ r <- netsplit(Bleeding_NMA_IV, method = "Back-calculation",
               random = F); s
 decomp.design(Bleeding_NMA_IV)
 
-
-
 # Bayesian NMA - fixed effects
 
 # All bleedings
@@ -40,7 +38,7 @@ NMA_bleeding_Bayesian <- bleeding_Bayesian_object[[2]]
 
 apply(MARGIN = 2, 
            FUN = function(x){
-             return(c(mean(x) ,quantile(x, probs = c(0.025, 0.975))))
+             return(c(mean(x), quantile(x, probs = c(0.025, 0.975))))
            } ,
            X = NMA_bleeding_Bayesian)
 
