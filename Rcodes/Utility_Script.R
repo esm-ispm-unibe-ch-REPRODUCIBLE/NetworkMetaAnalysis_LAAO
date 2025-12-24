@@ -211,13 +211,6 @@ NMA_compute_risk_differences <- function(data_object){
                         thin = 5, progress.bar = "none")
   posterior_samples <- do.call(rbind, samps) %>% as.data.frame()
   
-  apply(MARGIN = 2, 
-        FUN = function(x){
-          return(c(mean(x) ,quantile(x, probs = c(0.025, 0.975))))
-        } ,
-        X = to_return)
-  
-  
   closeAllConnections()
   to_return <- list(samps, posterior_samples)
   
