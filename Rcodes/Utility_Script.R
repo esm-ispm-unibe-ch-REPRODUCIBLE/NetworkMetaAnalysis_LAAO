@@ -92,10 +92,7 @@ NMA_compute <- function(data_object, DAPT_rate_event){
     
     odds_DAPT <- rate_DAPT / (1 - rate_DAPT)
     
-    p_DOAC <- odds_DAPT / (OR[3, 1] + odds_DAPT)
-    odds_DOAC <- p_DOAC / (1 - p_DOAC)
-    
-    pLowDoseDOAC <- odds_DAPT / (OR[3, 2] + odds_DAPT)
+    pLowDoseDOAC <- (OR[2, 1] * odds_DAPT) / (1 + OR[2, 1] * odds_DAPT)
     odds_LowDoseDOAC <- pLowDoseDOAC / (1 - pLowDoseDOAC)
     
     # Risk differences
@@ -107,7 +104,7 @@ NMA_compute <- function(data_object, DAPT_rate_event){
     RD[2] <- ((OR[2, 1] * odds_DAPT) / (1 + OR[2, 1] * odds_DAPT) - rate_DAPT) * 100
     
     # DOAC vs LowDoseDOAC
-    RD[3] <- ((OR[3, 2] * odds_DOAC) / (1 + OR[3, 2] * odds_DOAC) - p_DOAC) * 100
+    RD[3] <- ((OR[3, 2] * odds_LowDoseDOAC) / (1 + OR[3, 2] * odds_LowDoseDOAC) - pLowDoseDOAC) * 100
     
   # Ranking of treatments
   order[1:nt] <- rank(d[1:nt]) # order by effect: ----> best treatment
