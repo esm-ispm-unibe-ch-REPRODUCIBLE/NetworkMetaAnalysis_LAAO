@@ -38,7 +38,7 @@ data[["DRT"]] <- data_long %>%
   select(Name, arm, DRT, n_arm) %>% 
   rename(events = DRT)
 
-
+# Set data for Bayesian Analysis
 
 data_recoded <- data
 
@@ -48,4 +48,10 @@ for(i in 1:length(data)){
            trt = match(arm, treatments))
 }
 
-
+# Calculate crude events rate
+crude_events_rate <- data_long %>%  group_by(arm) %>%
+  summarize(n = sum(n_arm), all_bleeding = sum(all_bleeding),
+            Major_bleeding = sum(MajorBleeding), DRT = sum(DRT)) %>% 
+  mutate(bleeding_rate = all_bleeding/n,
+         major_bleeding_rate = Major_bleeding/n,
+         DRT_rate = DRT / n)
