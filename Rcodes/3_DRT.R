@@ -1,4 +1,4 @@
-# DRT
+# Device-related Thrombosis
 # Frequentist NMA - Fixed effect
 DRT.data_pair <- pairwise(treat = arm, event = DRT,
                          n = n_arm, data = data_long,
