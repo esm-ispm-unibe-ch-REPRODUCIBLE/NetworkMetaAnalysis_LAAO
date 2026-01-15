@@ -16,16 +16,12 @@ data_long <- data_raw %>%
   ) %>% 
   filter(is.na(arm) == F) 
 
-outcome_names <- c("all_bleeding", "MajorBleeding", "DRT")
+outcome_names <- c("all_bleeding", "MajorBleeding", "DRT", "AllMortality")
 
 study_names <- data_raw$Name; nstudies <- length(study_names)
 treatments <- unique(data_long$arm); ntrts <- length(treatments)
 
-data_long %>% group_by(arm) %>% summarize(DRTs = sum(DRT),
-                                          Bs = sum(all_bleeding),
-                                          MBs = sum(MajorBleeding))
-
-data <- list()
+data <- vector("list", length = length(outcome_names)) 
 data[["Bleeding"]] <- data_long %>% 
                     select(Name, arm, all_bleeding, n_arm) %>% 
                     rename(events = all_bleeding)
@@ -38,10 +34,12 @@ data[["DRT"]] <- data_long %>%
   select(Name, arm, DRT, n_arm) %>% 
   rename(events = DRT)
 
+data[["AllMortality"]] <- data_long %>% 
+  select(Name, arm, AllMortality, n_arm) %>% 
+  rename(events = AllMortality)
+
 # Set data for Bayesian Analysis
-
 data_recoded <- data
-
 for(i in 1:length(data)){
   data_recoded[[i]] <- data_recoded[[i]] %>% 
     mutate(ID_study = match(Name, study_names),
@@ -51,7 +49,6 @@ for(i in 1:length(data)){
 # Calculate crude events rate
 crude_events_rate <- data_long %>%  group_by(arm) %>%
   summarize(n = sum(n_arm), all_bleeding = sum(all_bleeding),
-            Major_bleeding = sum(MajorBleeding), DRT = sum(DRT)) %>% 
+            Major_bleeding = sum(MajorBleeding)) %>% 
   mutate(bleeding_rate = all_bleeding/n,
-         major_bleeding_rate = Major_bleeding/n,
-         DRT_rate = DRT / n)
+         major_bleeding_rate = Major_bleeding/n)
