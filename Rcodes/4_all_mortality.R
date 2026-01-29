@@ -21,7 +21,7 @@ decomp.design(AM_NMA)
 data_Mortality_Bayesian <- build_nma_data(df = data_recoded[[4]])
 
 set.seed(42)
-Mortality_Bayesian_object <- NMA_compute_risk_differences(data_Mortality_Bayesian)  
+Mortality_Bayesian_object <- NMA_compute(data_Mortality_Bayesian)  
 
 NMA_Mortality_Bayesian <- Mortality_Bayesian_object[[2]]
 
@@ -47,15 +47,10 @@ rd_map <- c(
   "RD[3,2]" = "RD: DOAC vs Low-dose DOAC"
 )
 
-# Nomi originali (una catena basta)
-old_names <- colnames(DRT.mcmc_to_plot[[1]])
-
-# Nuovi nomi
-new_names <- old_names
+new_names <- old_names <- colnames(DRT.mcmc_to_plot[[1]])
 idx <- match(names(rd_map), old_names)
 new_names[idx[!is.na(idx)]] <- rd_map[names(rd_map)[!is.na(idx)]]
 
-# Applica a tutte le 5 catene
 for (i in seq_along(DRT.mcmc_to_plot)) {
   colnames(mortality.mcmc_to_plot[[i]]) <- new_names
 }
@@ -83,5 +78,42 @@ for(i in params_to_plot) {
 par(mfrow = c(1,1))  
 
 
-
 gelman.diag(mortality.mcmc_to_plot[, params_to_plot])
+
+
+# Meta-analysis
+AllMortality <- MA_data_long %>% select(Name, arm_MA, AllMortality, n_arm)
+
+# Frequentist meta-analysis
+AM.data_pair.MA <- pairwise(treat = arm_MA, event = AllMortality,
+                             n = n_arm, data = AllMortality,
+                             studlab = Name, sm = "OR")
+
+AM_MA_MH <- metabin(AM.data_pair.MA,
+                     sm = "OR", method = "Inverse",
+                     random = F, reference.group = "DAPT")
+
+summary(AM_MA_MH)
+
+AM_MA_RD <- update(AM_MA_MH, sm = "RD")
+summary(AM_MA_RD)
+
+# Bayesian meta-analysis
+MA_data_AM_Bayesian <- build_nma_data(df = data_MA_recoded[[4]])
+set.seed(42)
+AM_MA_object <- MA_compute(data_object = MA_data_AM_Bayesian,
+                            DAPT_rate_event = crude_events_rate$mortality_rate[crude_events_rate$arm == "DAPT"])
+
+MA_AM_Bayesian <- AM_MA_object[[2]]
+
+apply(MARGIN = 2, 
+      FUN = function(x){
+        return(c(median(x), quantile(x, probs = c(0.025, 0.975))))
+      } ,
+      X = MA_AM_Bayesian)
+
+# Convergence assessment
+plot(AM_MA_object[[1]])
+gelman.diag(AM_MA_object[[1]])
+
+mean(MA_AM_Bayesian$RD < 0)

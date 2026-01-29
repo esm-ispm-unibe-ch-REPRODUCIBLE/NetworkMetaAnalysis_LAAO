@@ -70,19 +70,15 @@ for (i in seq_along(bleeding.mcmc_to_plot)) {
 params_to_plot <- grep("^(RD)", new_names, value = TRUE)
 gelman.diag(bleeding.mcmc_to_plot[, params_to_plot])
 
-# Set Layout
 par(mfrow = c(length(params_to_plot), 2), mar = c(4, 4, 2, 1))
-
 for(i in params_to_plot) {
   # Trace plot
   traceplot(bleeding.mcmc_to_plot[, i], main = paste("Trace of", i))
-  
   # Density plot
   densplot(bleeding.mcmc_to_plot[, i], show.obs = FALSE, main = paste("Density of", i),
            xlab = "Parameters estimate (%)")
 }
-
-par(mfrow = c(1,1))  # Reset layout
+par(mfrow = c(1,1))
 
 
 # Meta-analysis

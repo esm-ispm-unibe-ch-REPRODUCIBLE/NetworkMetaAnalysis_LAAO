@@ -14,10 +14,9 @@ netleague(DRT_NMA)
 decomp.design(DRT_NMA)
 
 # Bayesian NMA - Fixed Effects
-
 data_DRT_Bayesian <- build_nma_data(df = data_recoded[[3]])
 
-DRT_Bayesian_object <- NMA_compute_risk_differences(data_DRT_Bayesian)  
+DRT_Bayesian_object <- NMA_compute(data_DRT_Bayesian)  
 
 NMA_DRT_Bayesian <- DRT_Bayesian_object[[2]]
 
@@ -42,13 +41,9 @@ rd_map <- c(
   "RD[3,2]" = "RD: DOAC vs Low-dose DOAC"
 )
 
-old_names <- colnames(DRT.mcmc_to_plot[[1]])
-
-# Nuovi nomi
-new_names <- old_names
+new_names <- old_names <- colnames(DRT.mcmc_to_plot[[1]])
 idx <- match(names(rd_map), old_names)
 
-# Applica a tutte le 5 catene
 for (i in seq_along(DRT.mcmc_to_plot)) {
   colnames(DRT.mcmc_to_plot[[i]]) <- new_names
 }
@@ -75,3 +70,39 @@ par(mfrow = c(1,1))  # Reset layout
 
 gelman.diag(DRT.mcmc_to_plot[, params_to_plot])
 
+# Meta-analysis
+DRT <- MA_data_long %>% select(Name, arm_MA, DRT, n_arm)
+
+# Frequentist meta-analysis
+drt.data_pair.MA <- pairwise(treat = arm_MA, event = DRT,
+                            n = n_arm, data = DRT,
+                            studlab = Name, sm = "OR")
+
+DRT_MA_MH <- metabin(drt.data_pair.MA,
+                    sm = "OR", method = "MH",
+                    random = F, reference.group = "DAPT")
+
+summary(DRT_MA_MH)
+
+DRT_MA_RD <- update(DRT_MA_MH, sm = "RD")
+summary(DRT_MA_RD)
+
+# Bayesian meta-analysis
+MA_data_DRT_Bayesian <- build_nma_data(df = data_MA_recoded[[3]])
+set.seed(42)
+DRT_MA_object <- MA_compute(data_object = MA_data_DRT_Bayesian,
+                           DAPT_rate_event = crude_events_rate$DRT_rate[crude_events_rate$arm == "DAPT"])
+
+MA_DRT_Bayesian <- DRT_MA_object[[2]]
+
+apply(MARGIN = 2, 
+      FUN = function(x){
+        return(c(median(x), quantile(x, probs = c(0.025, 0.975))))
+      } ,
+      X = MA_DRT_Bayesian)
+
+# Convergence assessment
+plot(DRT_MA_object[[1]])
+gelman.diag(DRT_MA_object[[1]])
+
+mean(MA_DRT_Bayesian$RD < 0)
