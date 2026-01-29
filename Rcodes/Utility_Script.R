@@ -63,7 +63,7 @@ NMA_compute <- function(data_object, DAPT_rate_event){
     # prior distribution for basic parameters
     # except for the reference which is set to 0
     for(l in 2:nt){
-      d[l] ~ dnorm(0, 0.01)
+      d[l] ~ dnorm(0, 0.25)
     }
     d[1] <- 0
     
@@ -129,79 +129,66 @@ NMA_compute <- function(data_object, DAPT_rate_event){
 }
 
 
-NMA_compute_risk_differences <- function(data_object){
-  model.Bayesian_NMA <- "
+
+# Bayesian analysis on the OR scale
+MA_compute <- function(data_object, DAPT_rate_event){
+  model.Bayesian_MA <- "
   model{
     for(i in 1:ns){
-      u[i] ~ dbeta(0.5, 0.5)
+      # Prior distribution for log-odds in baseline arm of study i
+      u[i] ~ dnorm(0, 0.01)   
       
       # Binomial likelihood for number of events for each arm k for study i
       for(k in 1:na[i]){
-        r[i, t[i, k]] ~ dbin(p[i, t[i, k]], n[i, t[i, k]])
+        r[i, k] ~ dbin(p[i, k], n[i, k])
       }
       
       # Parametrization of the true effect of each comparison
-      for(k in 1:na[i]){
-        p[i, t[i, k]] <- max(min(u[i] + d[t[i, k]], 0.999), 0.001)
-      }
+      # of arm k vs baseline arm (1) of study y   
+      logit(p[i, 1]) <- u[i] # baseline risk
+      logit(p[i, 2]) <- u[i] + d
     }
   
     # prior distribution for basic parameters
-    for(k in 2:nt){
-      d[k] ~ dnorm(0, 100)
-    }
-    d[1] <- 0
-    
-    # RD for each comparison between treatment T(T-1)/2
-    for(i in 1:(nt-1)){
-      for(j in (i+1):nt){
-        RD[j, i] <- (d[j] - d[i]) * 100
-      }
-    }
-    
-  # Ranking of treatments
-  order[1:nt] <- rank(d[1:nt]) 
-  # if negative we don't add anything because a smaller value has a protective
-  # effect ----> best treatment
-  
-  for(i in 1:nt){
-    for(j in 1:nt){
-      effectiveness[i, j] <- equals(order[i], j)
-    }
-  }
+    # except for the reference which is set to 0
+    d ~ dnorm(0, 0.25)
 
+    # OR for each comparison between treatment T(T-1)/2
+    OR <- exp(d)
+    
+    odds_DAPT <- rate_DAPT / (1 - rate_DAPT)
+    
+    # Risk differences
+    
+    # DOAC vs DAPT
+    RD <- ((OR * odds_DAPT) / (1 + OR * odds_DAPT) - rate_DAPT) * 100
   }
 "
   
-  input_data <- list(ns = data_object[["nstudies"]], 
-                     r = data_object[["events"]], 
-                     n = data_object[["patients"]],
-                     nt = data_object[["ntreatments"]],
-                     na = data_object[["narms"]],
-                     t = data_object[["treatments"]]
-  )
+  data_to_pass <- list(ns = data_object[["nstudies"]], 
+                       r = data_object[["events"]], 
+                       n = data_object[["patients"]],
+                       nt = data_object[["ntreatments"]],
+                       na = data_object[["narms"]],
+                       rate_DAPT = DAPT_rate_event)
   
-  model.NMA.spec <- textConnection(model.Bayesian_NMA)
-  MA.jags.model <- jags.model(file = model.NMA.spec, data = input_data,
+  model.MA.spec <- textConnection(model.Bayesian_MA)
+  MA.jags.model <- jags.model(file = model.MA.spec, data = data_to_pass,
                               n.chains = 5, quiet = T)
   
-  params <- c("RD", "effectiveness")
+  params <- c("OR", "RD")
   samps <- coda.samples(MA.jags.model, variable.names = params, n.iter = 5e4, 
                         thin = 5, progress.bar = "none")
-  posterior_samples <- do.call(rbind, samps) %>% as.data.frame()
+  posterior_samples <- do.call(rbind, samps) %>% as.data.frame() 
   
-  apply(MARGIN = 2, 
-        FUN = function(x){
-          return(c(mean(x) ,quantile(x, probs = c(0.025, 0.975))))
-        } ,
-        X = posterior_samples)
-  
+  to_return <- list(samps, posterior_samples)
   
   closeAllConnections()
-  to_return <- list(samps, posterior_samples)
   
   return(to_return)
 }
+
+
 
 
 
