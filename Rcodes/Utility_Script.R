@@ -39,6 +39,7 @@ build_nma_data <- function(df, ref_trt = 1){
 }
 
 
+# Bayesian network meta-analysis on the OR scale
 NMA_compute <- function(data_object, DAPT_rate_event){
   model.Bayesian_NMA <- "
   model{
@@ -130,7 +131,7 @@ NMA_compute <- function(data_object, DAPT_rate_event){
 
 
 
-# Bayesian analysis on the OR scale
+# Bayesian meta-analysis on the OR scale
 MA_compute <- function(data_object, DAPT_rate_event){
   model.Bayesian_MA <- "
   model{
