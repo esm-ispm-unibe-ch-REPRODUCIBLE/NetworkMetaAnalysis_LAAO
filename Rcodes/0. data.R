@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggh4x)
 library(ggplot)
+library(meta)
 library(netmeta)
 library(readxl)
 library(tidyr)
@@ -52,3 +53,48 @@ crude_events_rate <- data_long %>%  group_by(arm) %>%
             Major_bleeding = sum(MajorBleeding)) %>% 
   mutate(bleeding_rate = all_bleeding/n,
          major_bleeding_rate = Major_bleeding/n)
+
+# Data for meta-analysis
+MA_data_long <- data_long %>% 
+  mutate(arm_MA = ifelse(arm == "DAPT", "DAPT", "DOAC")) %>% 
+  group_by(Name, arm_MA) %>% 
+  summarize(n_arm = sum(n_arm),
+            all_bleeding = sum(all_bleeding),
+            MajorBleeding = sum(MajorBleeding),
+            DRT = sum(DRT),
+            AllMortality = sum(AllMortality))
+
+
+# Bayesian analysis on the OR scale
+data_MA <- list()
+data_MA[["Bleeding"]] <- MA_data_long %>% 
+  select(Name, arm_MA, all_bleeding, n_arm) %>% 
+  rename(events = all_bleeding)
+
+data_MA[["MajorBleeding"]] <- MA_data_long %>% 
+  select(Name, arm_MA, MajorBleeding, n_arm) %>% 
+  rename(events = MajorBleeding)
+
+data_MA[["DRT"]] <- MA_data_long %>% 
+  select(Name, arm_MA, DRT, n_arm) %>% 
+  rename(events = DRT)
+
+data_MA[["AllMortality"]] <- MA_data_long %>% 
+  select(Name, arm_MA, AllMortality, n_arm) %>% 
+  rename(events = AllMortality)
+
+# Bayesian NMA
+data_MA_recoded <- data_MA
+
+for(i in 1:length(data)){
+  data_MA_recoded[[i]] <- data_MA_recoded[[i]] %>% 
+    mutate(ID_study = match(Name, study_names),
+           trt = match(arm_MA, treatments))
+}
+
+
+
+
+
+
+  

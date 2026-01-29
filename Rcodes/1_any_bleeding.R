@@ -85,7 +85,43 @@ for(i in params_to_plot) {
 par(mfrow = c(1,1))  # Reset layout
 
 
+# Meta-analysis
+Bleeding <- MA_data_long %>% select(Name, arm_MA, all_bleeding,
+                                 n_arm)
 
+# Frequentist
+Bleeding.data_pair.MA <- pairwise(treat = arm_MA, event = all_bleeding,
+                               n = n_arm, data = Bleeding,
+                               studlab = Name, sm = "OR")
+
+Bleeding_MA_MH <- metabin(Bleeding.data_pair.MA,
+                              sm = "OR", method = "MH",
+                              random = F, reference.group = "DAPT")
+
+summary(Bleeding_MA_MH)
+
+Bleeding_MA_RD <- update(Bleeding_MA_MH, sm = "RD")
+summary(Bleeding_MA_RD)
+
+# Bayesian
+set.seed(42)
+MA_data_bleeding_Bayesian <- build_nma_data(df = data_MA_recoded[[1]])
+anybleeding_MA_object <- MA_compute(data_object = MA_data_bleeding_Bayesian,
+                                    DAPT_rate_event = crude_events_rate$bleeding_rate[crude_events_rate$arm == "DAPT"])
+
+MA_bleeding_Bayesian <- anybleeding_MA_object[[2]]
+
+apply(MARGIN = 2, 
+      FUN = function(x){
+        return(c(median(x), quantile(x, probs = c(0.025, 0.975))))
+      } ,
+      X = MA_bleeding_Bayesian)
+
+# Convergence assessment
+plot(anybleeding_MA_object[[1]])
+gelman.diag(anybleeding_MA_object[[1]])
+
+mean(MA_bleeding_Bayesian$RD < 0)
 
 
 

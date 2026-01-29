@@ -15,14 +15,10 @@ NMA_MajorBleeding_Bayesian %>%
 
 
 NMA_DRT_Bayesian %>% 
-  summarize(prob1 = mean(`RD[3,1]` > 0),
-            prob2 = mean(`RD[2,1]` > 0),
-            prob3 = mean(`RD[3,2]` > 0))
+  summarize(prob1 = mean(`RD[3,1]` > 0))
 
 NMA_Mortality_Bayesian %>% 
-  summarize(prob1 = mean(`RD[3,1]` > 0),
-            prob2 = mean(`RD[2,1]` > 0),
-            prob3 = mean(`RD[3,2]` > 0))
+  summarize(prob1 = mean(`RD[3,1]` > 0))
 
 
 # PLOT
