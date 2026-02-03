@@ -65,6 +65,8 @@ posteriors <- ggplot(data = densities_df, aes(x = x, ymin = 0, ymax = y, fill = 
   scale_x_continuous(
     labels = function(x) paste0(x, "%")
   ) +
+  scale_fill_manual(values = c("steelblue3", "deepskyblue", "indianred2"))  + 
+  scale_color_manual(values = c("steelblue3", "deepskyblue", "indianred2")) +
   theme(
     plot.title = element_text(color="black", size=18, face="bold",hjust = 0.5),
     axis.title.x = element_text(color="black", size=12, face="bold"),
@@ -74,3 +76,14 @@ posteriors <- ggplot(data = densities_df, aes(x = x, ymin = 0, ymax = y, fill = 
   ) 
 
 print(posteriors)
+
+
+
+
+
+
+
+
+
+
+
