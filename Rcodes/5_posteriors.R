@@ -1,8 +1,8 @@
 # Posteriors probability
 
+## NETWORK META-ANALYSIS
+
 # Probability that that active is better than control (p<0)
-
-
 NMA_bleeding_Bayesian %>% 
   summarize(prob1 = mean(`RD[1]` > 0),
             prob2 = mean(`RD[2]` > 0),
@@ -79,7 +79,36 @@ print(posteriors)
 
 
 
+## META-ANALYSIS
+# Bind in one dataframe
+MA_densities_df <- bind_rows(a, b, c, d) %>%
+  mutate(comparison = "Any Dose DOAC vs DAPT",
+        area = ifelse(x>0, "DAPT better", "Any Dose DOAC better")
+         )
 
+MA_densities_df$outcome_factor <- factor(MA_densities_df$outcome,
+                                         levels = c("Any bleeding", "Major bleeding",
+                                                    "Device-related Thrombus", "All-cause mortality"))
+
+MA_posteriors <- ggplot(data = MA_densities_df, aes(x = x, ymin = 0, ymax = y, fill = area,
+                                              colour = area)) +
+  geom_ribbon() +
+  facet_wrap(~ outcome_factor, scales = "free", axes = "all",
+             ncol = 4) +
+  geom_line(aes(y = y)) +
+  geom_vline(xintercept = 0, color = 'darkmagenta', linetype = "dashed") +
+  labs(fill = "", y= "Posterior probability density", x = "Risk Difference",
+       color = "") +
+  scale_x_continuous(
+    labels = function(x) paste0(x, "%")
+  ) +
+  scale_fill_manual(values = c("dodgerblue", "indianred2"))  + 
+  scale_color_manual(values = c("dodgerblue",  "indianred2")) +
+  theme(
+    axis.title.x = element_text(color="black", size=12, face="bold"),
+    axis.title.y = element_text(color="black", size=12, face="bold"),
+    legend.position = "bottom"
+  ) 
 
 
 

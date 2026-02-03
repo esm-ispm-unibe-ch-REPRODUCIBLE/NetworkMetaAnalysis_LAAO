@@ -117,3 +117,32 @@ plot(AM_MA_object[[1]])
 gelman.diag(AM_MA_object[[1]])
 
 mean(MA_AM_Bayesian$RD < 0)
+
+d <- get_density(MA_AM_Bayesian$RD, "RD") %>% mutate(outcome = "All-cause mortality")
+
+ggplot(data = d, aes(x = x, ymin = 0, ymax = y, fill = area, colour = area)) +
+    geom_ribbon() +
+    geom_line(aes(y = y)) +
+    geom_vline(xintercept = 0, color = 'darkmagenta', linetype = "dashed") +
+    labs(fill = "", y= "Posterior probability density", x = "Risk Difference",
+         color = "") +
+    scale_x_continuous(
+      labels = function(x) paste0(x, "%")
+    ) +
+    scale_fill_manual(values = c("dodgerblue", "indianred2"))  + 
+    scale_color_manual(values = c("dodgerblue",  "indianred2")) +
+    theme(
+      axis.title.x = element_text(color="black", size = 12),
+      axis.title.y = element_text(color="black", size = 12),
+      axis.text.x  = element_text(color = "black"),
+      legend.text = element_text(size = 12),
+      legend.position = "bottom",
+      plot.background  = element_rect(fill = "white", colour = NA),
+      panel.background = element_rect(fill = "white", colour = "black"),
+      legend.background = element_rect(fill = "white", colour = NA),
+      legend.key        = element_rect(fill = "white", colour = NA),
+      text = element_text(family = "Helvetica")
+    )
+
+
+
