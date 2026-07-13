@@ -4,14 +4,19 @@ DRT.data_pair <- pairwise(treat = arm, event = DRT,
                          n = n_arm, data = data_long,
                          studlab = Name, sm = "RD") 
 
-DRT_NMA <- netmetabin(DRT.data_pair, sm = "RD", method = "Inverse",
+DRT_NMA_OR <- netmetabin(DRT.data_pair, sm = "OR", method = "LRP",
                         common = T, reference.group = "DAPT")
+summary(DRT_NMA_OR)
+netleague(DRT_NMA_OR)
 
-summary(DRT_NMA)
-netleague(DRT_NMA)
-(r.DRT <- netsplit(DRT_NMA, method = "Back",
-                  random = F)); plot(r.DRT, digits = 4)
-decomp.design(DRT_NMA)
+DRT_NMA_RD <- netmetabin(DRT.data_pair, sm = "RD", method = "Inverse",
+                        common = T, reference.group = "DAPT")
+summary(DRT_NMA_RD)
+netleague(DRT_NMA_RD) 
+
+r.DRT <- netsplit(DRT_NMA_RD, method = "Back",
+                  random = F); plot(r.DRT, digits = 4)
+decomp.design(DRT_NMA_RD)
 
 # Bayesian NMA - Fixed Effects
 data_DRT_Bayesian <- build_nma_data(df = data_recoded[[3]])

@@ -7,15 +7,23 @@ AM.data_pair <- pairwise(treat = arm, event = AllMortality,
                          n = n_arm, data = data_long,
                          studlab = Name, sm = "RD") 
 
-AM_NMA <- netmetabin(AM.data_pair, sm = "RD", method = "Inverse",
+
+AM_NMA_OR <- netmetabin(AM.data_pair, sm = "RD", method = "LRP",
                      common = T, reference.group = "DAPT")
 
-summary(AM_NMA)
-netleague(AM_NMA)
-(r.AM <- netsplit(AM_NMA, method = "Back",
-                  random = F)); plot(r.AM, digits = 4)
+summary(AM_NMA_OR)
+netleague(AM_NMA_OR)
 
-decomp.design(AM_NMA)
+AM_NMA_RD <- netmetabin(AM.data_pair, sm = "RD", method = "Inverse",
+                     common = T, reference.group = "DAPT")
+
+summary(AM_NMA_RD)
+netleague(AM_NMA_RD)
+
+r.AM <- netsplit(AM_NMA_RD, method = "Back",
+                  random = F); plot(r.AM, digits = 4)
+
+decomp.design(AM_NMA_RD)
 
 # Bayesian NMA - Fixed effects
 data_Mortality_Bayesian <- build_nma_data(df = data_recoded[[4]])
@@ -27,7 +35,7 @@ NMA_Mortality_Bayesian <- Mortality_Bayesian_object[[2]]
 
 apply(MARGIN = 2, 
       FUN = function(x){
-        return(c(mean(x) ,quantile(x, probs = c(0.025, 0.975))))
+        return(c(mean(x), quantile(x, probs = c(0.025, 0.975))))
       } ,
       X = NMA_Mortality_Bayesian)
 

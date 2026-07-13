@@ -22,6 +22,7 @@ summary(Bleeding_NMA_LRP); netleague(Bleeding_NMA_LRP)
 
 Bleeding_NMA_IV <- update(Bleeding_NMA_MH, method = "Inverse") 
 summary(Bleeding_NMA_IV); netleague(Bleeding_NMA_IV)
+
 r <- netsplit(Bleeding_NMA_IV, method = "Back-calculation",
               random = F); s
 decomp.design(Bleeding_NMA_IV)
@@ -87,12 +88,12 @@ Bleeding <- MA_data_long %>% select(Name, arm_MA, all_bleeding,
 
 # Frequentist
 Bleeding.data_pair.MA <- pairwise(treat = arm_MA, event = all_bleeding,
-                               n = n_arm, data = Bleeding,
-                               studlab = Name, sm = "OR")
+                                  n = n_arm, data = Bleeding,
+                                  studlab = Name, sm = "OR")
 
 Bleeding_MA_MH <- metabin(Bleeding.data_pair.MA,
-                              sm = "OR", method = "MH",
-                              random = F, reference.group = "DAPT")
+                          sm = "OR", method = "MH",
+                          random = F, reference.group = "DAPT")
 
 summary(Bleeding_MA_MH)
 
